@@ -30,8 +30,12 @@ def index(request):
 
     best_match = Match.objects.filter(series=series,round=round).get(Q(homename='Bayern Munich')|Q(awayname='Bayern Munich'))
     if check_time(best_match.startdate):
-        best_match.homegoals = '-'
-        best_match.awaygoals = '-'
+        home = best_match.HomeTeam
+        away = best_match.AwayTeam
+        resultHome = df_resultHome[(df_resultHome['HomeTeam'] == home)] # == home
+        resultAway = df_resultAway[(df_resultAway['AwayTeam'] == away)] # ==away
+        best_match.homegoals = int(resultHome.iloc[0]['HomeGoal'])
+        best_match.awaygoals = int(resultAway.iloc[0]['AwayGoal'])
     round_max = Match.objects.filter(series=series).aggregate(Max('round'))
 
     context = {
@@ -47,9 +51,15 @@ def index(request):
 
 def match_detail(request, series, round, match_id):
     match_object = Match.objects.get(pk = match_id)
+    df_resultHome  = pd.read_csv(os.path.join(os.path.dirname(__file__),'../../../IS/'+ series + '/resultHome.csv'))
+    df_resultAway  = pd.read_csv(os.path.join(os.path.dirname(__file__),'../../../IS/'+ series + '/resultAway.csv'))
     if check_time(match_object.startdate):
-        match_object.homegoals = '-'
-        match_object.awaygoals = '-'
+        home = match_object.HomeTeam
+        away = match_object.AwayTeam
+        resultHome = df_resultHome[(df_resultHome['HomeTeam'] == home)] # == home
+        resultAway = df_resultAway[(df_resultAway['AwayTeam'] == away)] # ==away
+        match_object.homegoals = int(resultHome.iloc[0]['HomeGoal'])
+        match_object.awaygoals = int(resultAway.iloc[0]['AwayGoal'])
     data = serializers.serialize('json', [match_object,])
     struct = json.loads(data)
     match = struct[0]
@@ -85,8 +95,12 @@ def matches(request, series, round):
         star_team = 'Juventus'
     best_match = Match.objects.filter(series=series,round=round).get(Q(homename=star_team)|Q(awayname=star_team))
     if check_time(best_match.startdate):
-        best_match.homegoals = '-'
-        best_match.awaygoals = '-'
+        home = best_match.HomeTeam
+        away = best_match.AwayTeam
+        resultHome = df_resultHome[(df_resultHome['HomeTeam'] == home)] # == home
+        resultAway = df_resultAway[(df_resultAway['AwayTeam'] == away)] # ==away
+        best_match.homegoals = int(resultHome.iloc[0]['HomeGoal'])
+        best_match.awaygoals = int(resultAway.iloc[0]['AwayGoal'])
     best_match_obj = serializers.serialize('json', [ best_match, ])
 
     data = {
